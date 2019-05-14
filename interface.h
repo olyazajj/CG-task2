@@ -12,10 +12,10 @@
 using namespace glm;
 
 GLfloat i_vertices[] = {
-    0.005f, 0.005f, -0.1f, 1.0f, 0.0f,
-    0.005f, -0.005f, -0.1f, 1.0f, 1.0f, 
-    -0.005f, -0.005f, -0.1f, 0.0f, 1.0f,
-    -0.005f, 0.005f, -0.1f, 0.0f, 0.0f,
+    0.1f, 0.1f, -0.1f, 1.0f, 0.0f,
+    0.1f, -0.1f, -0.1f, 1.0f, 1.0f,
+    -0.1f, -0.1f, -0.1f, 0.0f, 1.0f,
+    -0.1f, 0.1f, -0.1f, 0.0f, 0.0f
 };
 
 GLint i_indices [] = {
@@ -28,6 +28,13 @@ class Interface {
     unsigned int VBO;
     unsigned int EBO;
     unsigned int aim_texture;
+    unsigned int health_texture;
+    unsigned int score_texture;
+    unsigned int digits_texture;
+    vec2 aim_size;
+    vec2 health_size;
+    vec2 score_size;
+    vec2 digits_size;
 
     void initialization() 
     {
@@ -47,13 +54,14 @@ class Interface {
         glBindVertexArray(0);
     }
 
-    void upload_texture(unsigned int & tex, const char *path)
+    void upload_texture(unsigned int & tex, const char *path, vec2 & size)
     {
         glGenTextures(1, &tex);
         glBindTexture(GL_TEXTURE_2D, tex);
         int width, height;
         unsigned char *image;
         image = SOIL_load_image(path, &width, &height, nullptr, SOIL_LOAD_RGBA);
+        size = vec2(width, height);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -63,12 +71,119 @@ class Interface {
         glBindTexture(GL_TEXTURE_2D, 0);
     }
 
-    void aim_draw()
+    void aim_draw(ShaderProgram shader, GLfloat x, GLfloat y)
     {
+        mat4 model(1.0);
+        mat4 view(1.0);
+        mat4 projection(1.0);
+        model = translate(model, vec3(x, y, 0.0f));
+        model = scale(model, vec3(0.05f, 0.05f, 1.0f));
+        view = lookAt(vec3(0.0), vec3(0.0, 0.0, -1.0), vec3(0.0, 1.0, 0.0));
+        projection = perspective(radians(45.0f), (float) WIDTH / (float) HEIGHT, 0.1f, 150.0f);
+        shader.SetUniform("model", model);
+        shader.SetUniform("view", view);
+        shader.SetUniform("projection", projection);
+        shader.SetUniform("id", 0);
         glBindTexture(GL_TEXTURE_2D, aim_texture);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     }
 
+    void words_draw(ShaderProgram shader)
+    {
+        mat4 model(1.0);
+        mat4 view(1.0);
+        mat4 projection(1.0);
+        model = translate(model, vec3(-0.7, -0.7, 0.0));
+        model = scale(model, vec3(0.3, 0.3, 1.0));
+        model = scale(model, vec3(health_size.x / health_size.y, 1.0, 1.0f));
+        shader.SetUniform("model", model);
+        shader.SetUniform("view", view);
+        shader.SetUniform("projection", projection);
+        shader.SetUniform("id", 0);
+        glBindTexture(GL_TEXTURE_2D, health_texture);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+        model = mat4(1.0);
+        view = mat4(1.0);
+        projection = mat4(1.0);
+        model = translate(model, vec3(0.7, -0.7, 0.0));
+        model = scale(model, vec3(0.3, 0.3, 1.0));
+        model = scale(model, vec3(score_size.x / score_size.y, 1.0, 1.0f));
+        shader.SetUniform("model", model);
+        shader.SetUniform("view", view);
+        shader.SetUniform("projection", projection);
+        shader.SetUniform("id", 0);
+        glBindTexture(GL_TEXTURE_2D, score_texture);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    }
+
+    void digits_draw(ShaderProgram shader)
+    {
+        mat4 model(1.0);
+        mat4 view(1.0);
+        mat4 projection(1.0);
+        glBindTexture(GL_TEXTURE_2D, digits_texture);
+
+        model = mat4(1.0);
+        model = translate(model, vec3(0.65, -0.8, 0.0));
+        model = scale(model, vec3(0.3, 0.3, 1.0));
+        model = scale(model, vec3(0.1 * digits_size.x / digits_size.y, 1.0, 1.0f));
+        shader.SetUniform("model", model);
+        shader.SetUniform("view", view);
+        shader.SetUniform("projection", projection);
+        shader.SetUniform("health", health);
+        shader.SetUniform("score", score);
+        shader.SetUniform("id", 1);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+        model = mat4(1.0);
+        model = translate(model, vec3(0.7, -0.8, 0.0));
+        model = scale(model, vec3(0.3, 0.3, 1.0));
+        model = scale(model, vec3(0.1 * digits_size.x / digits_size.y, 1.0, 1.0f));
+        shader.SetUniform("model", model);
+        shader.SetUniform("view", view);
+        shader.SetUniform("projection", projection);
+        shader.SetUniform("health", health);
+        shader.SetUniform("score", score);
+        shader.SetUniform("id", 2);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+        model = mat4(1.0);
+        model = translate(model, vec3(0.75, -0.8, 0.0));
+        model = scale(model, vec3(0.3, 0.3, 1.0));
+        model = scale(model, vec3(0.1 * digits_size.x / digits_size.y, 1.0, 1.0f));
+        shader.SetUniform("model", model);
+        shader.SetUniform("view", view);
+        shader.SetUniform("projection", projection);
+        shader.SetUniform("health", health);
+        shader.SetUniform("score", score);
+        shader.SetUniform("id", 3);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+        model = mat4(1.0);
+        model = translate(model, vec3(-0.725, -0.8, 0.0));
+        model = scale(model, vec3(0.3, 0.3, 1.0));
+        model = scale(model, vec3(0.1 * digits_size.x / digits_size.y, 1.0, 1.0f));
+        shader.SetUniform("model", model);
+        shader.SetUniform("view", view);
+        shader.SetUniform("projection", projection);
+        shader.SetUniform("health", health);
+        shader.SetUniform("score", score);
+        shader.SetUniform("id", 4);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+        model = mat4(1.0);
+        model = translate(model, vec3(-0.675, -0.8, 0.0));
+        model = scale(model, vec3(0.3, 0.3, 1.0));
+        model = scale(model, vec3(0.1 * digits_size.x / digits_size.y, 1.0, 1.0f));
+        shader.SetUniform("model", model);
+        shader.SetUniform("view", view);
+        shader.SetUniform("projection", projection);
+        shader.SetUniform("health", health);
+        shader.SetUniform("score", score);
+        shader.SetUniform("id", 5);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    }
 
 public:
     Model bullet;
@@ -81,7 +196,10 @@ public:
     Interface()
     {
         initialization();
-        upload_texture(aim_texture, "../objects/aim.png");
+        upload_texture(aim_texture, "../objects/Aim.png", aim_size);
+        upload_texture(health_texture, "../objects/Health.png", health_size);
+        upload_texture(score_texture, "../objects/Score.png", score_size);
+        upload_texture(digits_texture, "../objects/Digits.png", digits_size);
         bull_scale = 0.01f;
         bullet.rad *= bull_scale;
         // cout<<"bull_gm "<<bullet.rad<<endl;
@@ -98,20 +216,10 @@ public:
         bullet_draw(shader_bullet, delta);
 
         shader.StartUseShader();
-        mat4 model(1.0);
-        model = translate(model, vec3(x, y, 0.0f));
-        shader.SetUniform("model", model);
-
-        mat4 view(1.0);
-        view = lookAt(vec3(0.0), vec3(0.0, 0.0, -1.0), vec3(0.0, 1.0, 0.0));
-        shader.SetUniform("view", view);
-
-        mat4 projection(1.0);
-		projection = perspective(radians(45.0f), (float) WIDTH / (float) HEIGHT, 0.1f, 150.0f);
-		shader.SetUniform("projection", projection);
-
         glBindVertexArray(VAO);
-        aim_draw();
+        words_draw(shader);
+        digits_draw(shader);
+        aim_draw(shader, x, y);
         glBindVertexArray(0);
         shader.StopUseShader();
     }
@@ -140,5 +248,20 @@ public:
         bullet_shader.StopUseShader();
     }
 
+    bool wound()
+    {
+        health -= 10;
+        if (health <= 0)
+        {
+            return true;
+        }
+        return false;
+    }
 
+    void hit()
+    {
+        score += 10;
+        Pos_bullet = vec3(0.0f);
+        Direction = vec3(0.0f);
+    }
 };

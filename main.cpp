@@ -25,7 +25,6 @@ GLfloat resol = (float)WIDTH / (float)HEIGHT;
 
 GLfloat lastX =  WIDTH  / 2.0;
 GLfloat lastY =  HEIGHT / 2.0;
-bool keys[1024];
 bool firstMouse = true;
 vec3 Front = glm::vec3(0.0f, 0.0f, -1.0f);
 GLfloat Yaw = -90.0f;
@@ -48,7 +47,7 @@ int main(int argc, char** argv)
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); 
 	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE); 
 
-  GLFWwindow*  window = glfwCreateWindow(WIDTH, HEIGHT, "OpenGL basic sample", nullptr, nullptr);
+  GLFWwindow*  window = glfwCreateWindow(WIDTH, HEIGHT, "Olya Zaytseva", nullptr, nullptr);
 	if (window == nullptr)
 	{
 		std::cout << "Failed to create GLFW window" << std::endl;
@@ -91,13 +90,13 @@ int main(int argc, char** argv)
 	ShaderProgram asteroid_shader(shaders); GL_CHECK_ERRORS;
 
 	// glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-  glfwSwapInterval(1); // force 60 frames per second
+    glfwSwapInterval(1); // force 60 frames per second
 	Background background;
 	Interface interface;
 	vector<Enemy> ships;
 	ships.push_back(Enemy(std::string("../objects/Aircraft/Aircraft.obj"), glm::vec3(5.0, -1.0, -150.0), bullet_shader, 180.0));
 	ships.push_back(Enemy(std::string("../objects/dron/Drone_obj.obj"), glm::vec3(0.0, 0.0, -180.0), bullet_shader));
-  ships.push_back(Enemy(std::string("../objects/ship/ship.obj"), glm::vec3(-5.0, 5.0, -170.0), bullet_shader));
+    ships.push_back(Enemy(std::string("../objects/ship/ship.obj"), glm::vec3(-5.0, 5.0, -170.0), bullet_shader));
 	vector<Asteroid> asteroids;
 	asteroids.push_back(Asteroid(std::string("../objects/rock/rock_by_dommk.obj"), glm::vec3(-10.0, 10.0, -120.0)));
 	asteroids.push_back(Asteroid(std::string("../objects/rock/rock_by_dommk.obj"), glm::vec3(10.0, 10.0, -100.0)));
@@ -137,15 +136,31 @@ int main(int argc, char** argv)
 			if (!T->DEATH && (length(T->Pos - interface.Pos_bullet) <= (T->rad + interface.bullet.rad))) 
 			{
 				T->death();
+				interface.hit();
 			}
-		} 
+            if (!T->DEATH && (length(T->Pos) <= T->rad))
+            {
+                END = interface.wound();
+                T->death();
+            }
+            if (length(T->Pos_bullet) <= (T->bullet.rad + 0.1))
+            {
+                END = interface.wound();
+            }
+		}
 		for(auto T = asteroids.begin(); T != asteroids.end(); T++)
 		{
 			T->draw(asteroid_shader, currentFrame, deltaTime);
 			if (!T->DAMAGE && (length(T->Pos - interface.Pos_bullet) <= (T->rad + interface.bullet.rad)))
 			{
 				T->damage(currentFrame);
+				interface.hit();
 			}
+            if (!T->DAMAGE && (length(T->Pos) <= T->rad))
+            {
+                END = interface.wound();
+                T->damage(currentFrame);
+            }
 		} 
 
 		if (SHOT) 
@@ -218,7 +233,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 		if (Yaw > cn + of)
 				Yaw = cn + of;
 
-		vec3 front;
+	vec3 front;
     front.x = cos(glm::radians(Yaw)) * cos(glm::radians(Pitch));
     front.y = sin(glm::radians(Pitch));
     front.z = sin(glm::radians(Yaw)) * cos(glm::radians(Pitch));

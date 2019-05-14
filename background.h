@@ -52,7 +52,7 @@ class Background {
         glBindTexture(GL_TEXTURE_2D, background_texture);
         int width, height;
         unsigned char *image;
-        image = SOIL_load_image("../objects/space.jpg", &width, &height, nullptr, SOIL_LOAD_RGBA);
+        image = SOIL_load_image("../objects/Space.jpg", &width, &height, nullptr, SOIL_LOAD_RGBA);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
