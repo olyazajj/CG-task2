@@ -5,8 +5,6 @@ in vec2 TexCoords;
 
 uniform float offset;
 uniform vec3 Pos;
-// uniform float width;
-// uniform float height;
 uniform sampler2D tex;
 
 const int count = 14;

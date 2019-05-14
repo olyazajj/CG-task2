@@ -138,7 +138,7 @@ int main(int argc, char** argv)
 				T->death();
 				interface.hit();
 			}
-            if (!T->DEATH && (length(T->Pos) <= T->rad))
+            if (!T->DEATH && (length(T->Pos) <= (T->rad + 0.1)))
             {
                 END = interface.wound();
                 T->death();
@@ -156,7 +156,7 @@ int main(int argc, char** argv)
 				T->damage(currentFrame);
 				interface.hit();
 			}
-            if (!T->DAMAGE && (length(T->Pos) <= T->rad))
+            if (!T->DAMAGE && (length(T->Pos) <= (T->rad + 1.0)))
             {
                 END = interface.wound();
                 T->damage(currentFrame);
